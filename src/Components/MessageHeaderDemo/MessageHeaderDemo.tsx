@@ -6,8 +6,8 @@ import {
     CometChatUIKitConstants,
 } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
-import CallSvg from "../assets/AudioCall.svg";
-import VideoCallSvg from "../assets/Video-call.svg"
+import CallSvg from "../../assets/AudioCall.svg";
+import VideoCallSvg from "../../assets/Video-call.svg"
 
 const callIconURL = CallSvg;
 const videoIconURL = VideoCallSvg;
