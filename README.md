@@ -26,5 +26,5 @@ Setup Instructions
 
 1. Clone this repo:
    bash
-   git clone https://github.com/your-username/cometchat-vite-client.git
+   git clone https://github.com/vivek1209-star-blog/cometchat-vite-client.git
    cd cometchat-vite-client
