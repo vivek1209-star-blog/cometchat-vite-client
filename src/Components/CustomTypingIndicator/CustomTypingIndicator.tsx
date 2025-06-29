@@ -1,55 +1,56 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
+import { useAppDispatch, useAppSelector } from "../../hooks/index";
+import { setTyping } from "../../features/typing/typingSlice";
 
-// Define the props type
 interface CustomTypingIndicatorProps {
   user?: CometChat.User;
   group?: CometChat.Group;
 }
 
 const CustomTypingIndicator: React.FC<CustomTypingIndicatorProps> = ({ user, group }) => {
-  const [isTyping, setIsTyping] = useState<boolean>(false);
+  const dispatch = useAppDispatch();
+  const isTyping = useAppSelector(state => state.typing.isTyping);
 
-useEffect(() => {
-  if (!user && !group) return;
+  useEffect(() => {
+    if (!user && !group) return;
 
-  const listenerID = "TYPING_LISTENER_" + (user?.getUid() || group?.getGuid());
+    const listenerID = "TYPING_LISTENER_" + (user?.getUid() || group?.getGuid());
 
-  CometChat.addMessageListener(
-    listenerID,
-    new CometChat.MessageListener({
-      onTypingStarted: (typingIndicator: CometChat.TypingIndicator) => {
-        const receiverType = typingIndicator.getReceiverType();
-        const receiverId = typingIndicator.getReceiverId();
-        const sender = typingIndicator.getSender(); // returns a User
+    CometChat.addMessageListener(
+      listenerID,
+      new CometChat.MessageListener({
+        onTypingStarted: (typingIndicator: CometChat.TypingIndicator) => {
+          const receiverType = typingIndicator.getReceiverType();
+          const receiverId = typingIndicator.getReceiverId();
+          const sender = typingIndicator.getSender();
 
-        if (
-          (user && receiverType === "user" && sender.getUid() === user.getUid()) ||
-          (group && receiverType === "group" && receiverId === group.getGuid())
-        ) {
-          setIsTyping(true);
+          if (
+            (user && receiverType === "user" && sender.getUid() === user.getUid()) ||
+            (group && receiverType === "group" && receiverId === group.getGuid())
+          ) {
+            dispatch(setTyping(true));
+          }
+        },
+        onTypingEnded: (typingIndicator: CometChat.TypingIndicator) => {
+          const receiverType = typingIndicator.getReceiverType();
+          const receiverId = typingIndicator.getReceiverId();
+          const sender = typingIndicator.getSender();
+
+          if (
+            (user && receiverType === "user" && sender.getUid() === user.getUid()) ||
+            (group && receiverType === "group" && receiverId === group.getGuid())
+          ) {
+            dispatch(setTyping(false));
+          }
         }
-      },
-      onTypingEnded: (typingIndicator: CometChat.TypingIndicator) => {
-        const receiverType = typingIndicator.getReceiverType();
-        const receiverId = typingIndicator.getReceiverId();
-        const sender = typingIndicator.getSender();
+      })
+    );
 
-        if (
-          (user && receiverType === "user" && sender.getUid() === user.getUid()) ||
-          (group && receiverType === "group" && receiverId === group.getGuid())
-        ) {
-          setIsTyping(false);
-        }
-      }
-    })
-  );
-
-  return () => {
-    CometChat.removeMessageListener(listenerID);
-  };
-}, [user, group]);
-
+    return () => {
+      CometChat.removeMessageListener(listenerID);
+    };
+  }, [user, group, dispatch]);
 
   if (!isTyping) return null;
 

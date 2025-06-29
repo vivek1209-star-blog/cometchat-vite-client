@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import {
   CometChatMessageComposer,
   CometChatMessageList,
-  CometChatUIKit,
-  UIKitSettingsBuilder,
 } from "@cometchat/chat-uikit-react";
 import { CometChat } from "@cometchat/chat-sdk-javascript";
 import { CometChatSelector } from "./Components/CometChatSelector/CometChatSelector";
@@ -12,56 +10,20 @@ import '@cometchat/chat-uikit-react/css-variables.css';
 import CustomTypingIndicator from "./Components/CustomTypingIndicator/CustomTypingIndicator.tsx";
 import { MessageHeaderDemo } from "./Components/MessageHeaderDemo/MessageHeaderDemo.tsx";
 import { ThreadHeaderDemo } from "./Components/ThreadHeaderDemo/ThreadHeaderDemo.tsx";
-
-const COMETCHAT_CONSTANTS = {
-  APP_ID: import.meta.env.VITE_COMETCHAT_APP_ID,
-  REGION: import.meta.env.VITE_COMETCHAT_REGION,
-  AUTH_KEY: import.meta.env.VITE_COMETCHAT_AUTH_KEY,
-  UID: import.meta.env.VITE_COMETCHAT_UID,
-};
+import { useAppDispatch, useAppSelector } from './hooks/index.ts';
+import { initCometChat } from './features/chat/chatSlice';
 
 function App() {
-  const [isReady, setIsReady] = useState(false);
+  const dispatch = useAppDispatch();
+  const isReady = useAppSelector(state => state.chat.isReady);
+
   const [selectedUser, setSelectedUser] = useState<CometChat.User>();
   const [selectedGroup, setSelectedGroup] = useState<CometChat.Group>();
   const [selectedCall, setSelectedCall] = useState<CometChat.Call>();
 
   useEffect(() => {
-    const init = async () => {
-      const settings = new UIKitSettingsBuilder()
-        .setAppId(COMETCHAT_CONSTANTS.APP_ID)
-        .setRegion(COMETCHAT_CONSTANTS.REGION)
-        .setAuthKey(COMETCHAT_CONSTANTS.AUTH_KEY)
-        .subscribePresenceForAllUsers()
-        .build();
-
-      try {
-        await CometChatUIKit.init(settings);
-        console.log("CometChat initialized");
-
-        await CometChatUIKit.login(COMETCHAT_CONSTANTS.UID);
-        console.log("User logged in");
-
-        CometChat.addUserListener(
-          "USER_PRESENCE_LISTENER",
-          new CometChat.UserListener({
-            onUserOnline: (user: CometChat.User) => console.log(`${user.getName()} is online`),
-            onUserOffline: (user: CometChat.User) => console.log(`${user.getName()} is offline`)
-          })
-        );
-
-        setIsReady(true);
-      } catch (error) {
-        console.error("Initialization/Login failed", error);
-      }
-    };
-
-    init();
-
-    return () => {
-      CometChat.removeUserListener("USER_PRESENCE_LISTENER");
-    };
-  }, []);
+    dispatch(initCometChat());
+  }, [dispatch]);
 
   if (!isReady) {
     return <div className="loading">Initializing Chat...</div>;
